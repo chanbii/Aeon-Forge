@@ -15,10 +15,10 @@ public enum DangerLevel
 public class StageDto
 {
     public string StageID;
+    public string StageName;
     public string Area;
     public int StageNum;
     public DangerLevel Danger;
-    public int MinLevel;
-    public int MaxLevel;
+    public int Level;
 }
 

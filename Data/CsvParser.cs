@@ -136,8 +136,4 @@ public static class CsvParser
         v = v.Trim().ToLowerInvariant();
         return v is "1" or "true" or "yes" or "y" or "on";
     }
-
-   
-
-    
 }

@@ -24,7 +24,6 @@ public sealed class DatabaseService : IDisposable
         _dbPath = Path.Combine(Application.persistentDataPath, dbFileName);
         _connStr = $"URI=file:{_dbPath}";
 
-        // Open()을 호출하지 말고 직접 연결/PRAGMA 수행
         using (var conn = new Mono.Data.Sqlite.SqliteConnection(_connStr))
         {
             conn.Open();
@@ -49,6 +48,11 @@ public sealed class DatabaseService : IDisposable
         if (!_initialized) Initialize("game.db");
         var conn = new SqliteConnection(_connStr);
         conn.Open();
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "PRAGMA foreign_keys=ON;"; cmd.ExecuteNonQuery();   // ★ NEW
+            cmd.CommandText = "PRAGMA busy_timeout=3000;"; cmd.ExecuteNonQuery(); // ★ NEW(권장)
+        }
         return conn;
     }
 
@@ -87,8 +91,8 @@ public sealed class DatabaseService : IDisposable
             @"CREATE TABLE IF NOT EXISTS stage_costs(
             Id        INTEGER PRIMARY KEY AUTOINCREMENT,
             StageID   TEXT    NOT NULL,     -- stages.StageID 참조
-            CostType  TEXT    NOT NULL,     
-            CostValue    INTEGER NOT NULL,
+            CostType  TEXT,     
+            CostValue    INTEGER,
             FOREIGN KEY(StageID) REFERENCES stages(StageID)
           );";
             cmd.ExecuteNonQuery();
@@ -102,15 +106,27 @@ public sealed class DatabaseService : IDisposable
             @"CREATE TABLE IF NOT EXISTS stage_rewards(
             Id         INTEGER PRIMARY KEY AUTOINCREMENT,
             StageID    TEXT    NOT NULL,    -- stages.StageID 참조
-            RewardMoney INTEGER    NOT NULL, 
-            RewardTicket INTEGER    NOT NULL,   
+            RewardMoney INTEGER, 
+            RewardTicket INTEGER,   
             FOREIGN KEY(StageID) REFERENCES stages(StageID)
           );";
             cmd.ExecuteNonQuery();
 
+            // 4) stage_progress: 잠금/클리어 상태
+            cmd.CommandText =
+            @"CREATE TABLE IF NOT EXISTS stage_progress(
+            StageID   TEXT PRIMARY KEY,
+            Unlocked  INTEGER NOT NULL DEFAULT 0,
+            Cleared   INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY(StageID) REFERENCES stages(StageID)
+);";
+            cmd.ExecuteNonQuery();
+
+
             // 복합 유니크
             cmd.CommandText =
                 "CREATE UNIQUE INDEX IF NOT EXISTS ux_stage_rewards ON stage_rewards(StageID, RewardMoney);";
+            cmd.ExecuteNonQuery();
 
             // --- 마이그레이션 ---
             if (!ColumnExists(conn, "stage_rewards", "RewardTicket"))
@@ -124,25 +140,76 @@ public sealed class DatabaseService : IDisposable
             {
                 // 새 테이블로 교체 
                 cmd.CommandText = @"
-BEGIN TRANSACTION;
-CREATE TABLE stage_rewards_new(
-  Id INTEGER PRIMARY KEY AUTOINCREMENT,
-  StageID TEXT NOT NULL,
-  RewardMoney INTEGER NOT NULL,
-  RewardTicket INTEGER NOT NULL
-);
-INSERT INTO stage_rewards_new (StageID, RewardMoney, RewardTicket)
-SELECT StageID,
-       COALESCE(RewardMoney, Amount, 0),
-       COALESCE(RewardTicket, 0)
-FROM stage_rewards;
-DROP TABLE stage_rewards;
-ALTER TABLE stage_rewards_new RENAME TO stage_rewards;
-CREATE UNIQUE INDEX IF NOT EXISTS ux_stage_rewards ON stage_rewards(StageID, RewardMoney);
-COMMIT;";
+                BEGIN TRANSACTION;
+                CREATE TABLE stage_rewards_new(
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                StageID TEXT NOT NULL,
+                RewardMoney INTEGER NOT NULL,
+                RewardTicket INTEGER NOT NULL
+                );
+                INSERT INTO stage_rewards_new (StageID, RewardMoney, RewardTicket)
+                SELECT StageID,
+                COALESCE(RewardMoney, Amount, 0),
+                COALESCE(RewardTicket, 0)
+                FROM stage_rewards;
+                DROP TABLE stage_rewards;
+                ALTER TABLE stage_rewards_new RENAME TO stage_rewards;
+                CREATE UNIQUE INDEX IF NOT EXISTS ux_stage_rewards ON stage_rewards(StageID, RewardMoney);
+                COMMIT;";
                 cmd.ExecuteNonQuery();
             }
         }
+    }
+
+    public void EnsureProgressRows(IEnumerable<string> stageIds)
+    {
+        using var conn = Open();
+        using var tx = conn.BeginTransaction();
+        foreach (var id in stageIds)
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "INSERT OR IGNORE INTO stage_progress(StageID,Unlocked,Cleared) VALUES(@id,0,0);";
+            cmd.Parameters.Add(new SqliteParameter("@id", id));
+            cmd.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
+    public bool IsUnlocked(string stageId)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT Unlocked FROM stage_progress WHERE StageID=@id;";
+        cmd.Parameters.Add(new SqliteParameter("@id", stageId));
+        var o = cmd.ExecuteScalar();
+        return o != null && Convert.ToInt32(o) != 0;
+    }
+
+    public void Unlock(string stageId)
+    {
+        using var conn = Open();
+        using var cmd1 = conn.CreateCommand();
+        cmd1.CommandText = "INSERT OR IGNORE INTO stage_progress(StageID,Unlocked,Cleared) VALUES(@id,1,0);";
+        cmd1.Parameters.Add(new SqliteParameter("@id", stageId));
+        cmd1.ExecuteNonQuery();
+
+        using var cmd2 = conn.CreateCommand();
+        cmd2.CommandText = "UPDATE stage_progress SET Unlocked=1 WHERE StageID=@id;";
+        cmd2.Parameters.Add(new SqliteParameter("@id", stageId));
+        cmd2.ExecuteNonQuery();
+    }
+
+    public void MarkCleared(string stageId)
+    {
+        using var conn = Open();
+        using var cmd1 = conn.CreateCommand();
+        cmd1.CommandText = "INSERT OR IGNORE INTO stage_progress(StageID,Unlocked,Cleared) VALUES(@id,1,1);";
+        cmd1.Parameters.Add(new SqliteParameter("@id", stageId));
+        cmd1.ExecuteNonQuery();
+
+        using var cmd2 = conn.CreateCommand();
+        cmd2.CommandText = "UPDATE stage_progress SET Cleared=1, Unlocked=1 WHERE StageID=@id;";
+        cmd2.Parameters.Add(new SqliteParameter("@id", stageId));
+        cmd2.ExecuteNonQuery();
     }
 
 

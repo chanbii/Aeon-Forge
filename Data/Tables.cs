@@ -63,17 +63,30 @@ public class Tables : MonoBehaviour
         StagesByArea.Clear();
         foreach (var s in Stages)
         {
-            if (!StagesByArea.TryGetValue(s.Area, out var list))
-                list = StagesByArea[s.Area] = new List<StageDto>();
+            var area = s.Area?.Trim();
+            if (string.IsNullOrEmpty(area)) continue;
+
+            if (!StagesByArea.TryGetValue(area, out var list))
+                list = StagesByArea[area] = new List<StageDto>();
             list.Add(s);
         }
-        // 정렬(번호 → ID)
-        foreach (var kv in StagesByArea)
-            kv.Value.Sort((a, b) => a.StageNum != b.StageNum
-                ? a.StageNum.CompareTo(b.StageNum)
-                : string.Compare(a.StageID, b.StageID, StringComparison.Ordinal));
 
-        // 검증용 로그
+        Areas.Clear();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var s in Stages)
+        {
+            var area = s.Area?.Trim();
+            if (string.IsNullOrEmpty(area)) continue;
+            if (seen.Add(area)) Areas.Add(area);
+        }
+
+        // (디버그) 실제 키 확인
+        foreach (var a in Areas)
+            Debug.Log($"[Tables] Area='{a}', count={StagesByArea[a].Count}");
+
+
+        /*
+        // (디버그) 검증용 로그
         var known = new HashSet<string>(StageById.Keys, StringComparer.OrdinalIgnoreCase);
         foreach (var id in RewardsByStageId.Keys)
         {
@@ -86,8 +99,9 @@ public class Tables : MonoBehaviour
                 Debug.LogWarning($"[Tables] Cost만 있고 Stage 없음: {id}");
         }
 
-        // 성공시 로그
+        // (디버그) 성공시 로그
         Debug.Log($"[Tables] Stages={Stages.Count}, Rewards={StageRewards.Count}, Costs={StageCosts.Count}");
+        */
     }
 
     public StageDto GetStage(string stageID)

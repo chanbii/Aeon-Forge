@@ -5,8 +5,8 @@ public class GameBootstrap : MonoBehaviour
 {
     [Header("CSV")]
     public TextAsset stagesCsv;
-    public TextAsset stageCostsCsv;     // 있으면 할당
-    public TextAsset stageRewardsCsv;   // 있으면 할당
+    public TextAsset stageCostsCsv;     
+    public TextAsset stageRewardsCsv;  
 
     public StageRepository StageRepo { get; private set; }
 
@@ -15,7 +15,7 @@ public class GameBootstrap : MonoBehaviour
         DatabaseService.Instance.Initialize("game.db");
         DatabaseService.Instance.EnsureSchema();
 
-        // 1) CSV → DTO 파싱 (네 CsvParser 그대로 사용)
+        // 1) CSV → DTO 파싱 
         if (stagesCsv != null)
         {
             IEnumerable<StageDto> stages = CsvParser.Parse<StageDto>(stagesCsv.text);

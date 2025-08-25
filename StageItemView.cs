@@ -1,99 +1,107 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using System.Collections.Generic;
 using UnityEngine.EventSystems;
 
-public class StageItemView : MonoBehaviour
+public class StageItemView : MonoBehaviour, IPointerClickHandler
 {
-    [Header("Roots")]
-    [SerializeField] GameObject collapsedRoot;
-    [SerializeField] GameObject expandedRoot;
-
+    [Header("Refs")]
+    [SerializeField] RectTransform header;
+    [SerializeField] RectTransform details;
+    [SerializeField] GameObject lockIcon;
     [Header("Texts")]
-    [SerializeField] private TMP_Text titleCollapsed; // 접힘용 타이틀
-    [SerializeField] private TMP_Text titleExpanded;  // 펼침용 타이틀
-    [SerializeField] TMP_Text dangerText;
-    [SerializeField] TMP_Text rewardText;
-    [SerializeField] TMP_Text costText;
+    [SerializeField] TMP_Text stageName, costTypeText, costValueText, moneyText, ticketText, dangerText;
+    [Header("Layout")]
+    [SerializeField] LayoutElement layout;
+    [SerializeField] float headerHeight = 80f;
+    [SerializeField] float extraPadding = 12f;
+    [SerializeField] float detailsFixedHeight = -1f;
 
-    public bool IsExpanded {  get; private set; }
-
+    public string StageID { get; private set; }
+    public bool IsLocked { get; private set; }
+    public bool IsExpanded { get; private set; }
     public event Action<StageItemView> OnExpandRequest;
 
-    private void Awake()
+    void Awake()
     {
-        SetExpanded(false, immediate: true);
+        if (!layout)
+            layout = GetComponent<LayoutElement>() ?? gameObject.AddComponent<LayoutElement>();
+        layout.flexibleHeight = 0;
+        layout.preferredHeight = headerHeight;
+
+        var img = GetComponent<Image>();
+        if (!img)
+        {
+            img = gameObject.AddComponent<Image>();
+            img.color = new Color(0, 0, 0, 0.001f);
+        }
+        img.raycastTarget = true;
+
+        foreach (var t in GetComponentsInChildren<TMP_Text>(true))
+            t.raycastTarget = false;
+        foreach (var i in GetComponentsInChildren<Image>(true))
+            if (i.gameObject != gameObject)
+                i.raycastTarget = false;
+
+        if (details)
+            details.gameObject.SetActive(false);
+    }
+    public void Bind(StageDto s, StageRewardDto r, StageCostDto c, bool isLocked)
+    {
+        StageID = s.StageID;
+
+        stageName?.SetText(s.StageName ?? "");
+        dangerText?.SetText(s.Danger.ToString());
+
+        moneyText?.SetText(r != null ? r.RewardMoney.ToString() : "-");
+        ticketText?.SetText(r != null ? r.RewardTicket.ToString() : "-");
+
+        costTypeText?.SetText(c != null ? c.CostType : "-");
+        costValueText?.SetText(c != null ? c.CostValue.ToString() : "-");
+
+        SetLocked(isLocked);
+        SetExpanded(false, true);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void SetLocked(bool locked)
     {
-        OnExpandRequest?.Invoke(this);
+        IsLocked = locked;
+        if (lockIcon) lockIcon.SetActive(locked);
+        var cg = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+        cg.alpha = locked ? 0.6f : 1f;
+        if (locked && IsExpanded) SetExpanded(false, true);
     }
 
-    // 데이터 바인딩
-    public void Bind(StageDto stage, IReadOnlyList<StageRewardDto> rewards, IReadOnlyList<StageCostDto> costs)
+    public void OnPointerClick(PointerEventData _) { if (!IsLocked) OnExpandRequest?.Invoke(this); }
+
+    public void SetExpanded(bool expand, bool immediate = false)
     {
-        var title = $"{stage.StageName}";
-        if (titleCollapsed) titleCollapsed.text = title;
-        if (titleExpanded) titleExpanded.text = title;
-        if (dangerText) dangerText.text = stage.Danger.ToString();
+        IsExpanded = expand;
+        if (details) details.gameObject.SetActive(expand);
 
-        if (rewardText) rewardText.text = FormatRewards(rewards);
-        if (costText) costText.text = FormatCosts(costs);
+        layout.preferredHeight = expand ? CalcExpandedHeight() : headerHeight;
 
-        SetExpanded(false, immediate: true); // 풀 재사용 대비 기본 닫힘
-    }
-
-    public void SetExpanded(bool on, bool immediate = false)
-    {
-        IsExpanded = on;
-        if (collapsedRoot) collapsedRoot.SetActive(!on);
-        if (expandedRoot) expandedRoot.SetActive(on);
-
-        // 레이아웃 즉시 갱신(스크롤 튐 방지)
         var self = (RectTransform)transform;
         if (immediate)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(self);
             if (self.parent is RectTransform p) LayoutRebuilder.ForceRebuildLayoutImmediate(p);
         }
-        else
-        {
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(self);
-            if (self.parent is RectTransform p2) LayoutRebuilder.ForceRebuildLayoutImmediate(p2);
-        }
+        else LayoutRebuilder.MarkLayoutForRebuild(self);
     }
 
-    // ---- 표시용 요약 포맷 ----
-    static string FormatRewards(IReadOnlyList<StageRewardDto> rs)
+    float CalcExpandedHeight()
     {
-        if (rs == null || rs.Count == 0) return "-";
+        if (!details) return headerHeight;
 
-        var parts = new List<string>();
-        foreach (var r in rs)
-        {
-            if (r.RewardMoney != 0)
-            {
-                parts.Add($"{r.RewardMoney}");
-            }
-        }
+        if (detailsFixedHeight > 0f)
+            return headerHeight + detailsFixedHeight;
 
-        return parts.Count == 0 ? "-" : string.Join(" / ", parts);
-    }
-
-    static string FormatCosts(IReadOnlyList<StageCostDto> cs)
-    {
-        if (cs == null || cs.Count == 0) return "-";
-
-        var parts = new List<string>();
-        foreach (var c in cs)
-        {
-            parts.Add($"{c.CostType} x{c.CostValue}");
-        }
-        return string.Join(" / ", parts);
+        Canvas.ForceUpdateCanvases();
+        var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(details);
+        float detailsHeight = bounds.size.y; 
+        return Mathf.Max(headerHeight, headerHeight + detailsHeight + extraPadding);
     }
 }

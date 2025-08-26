@@ -5,7 +5,6 @@ using System.Data;
 using Mono.Data.Sqlite;
 using UnityEngine;
 
-// DB 열기/닫기, 테이블 생성, CSV 시드 (Insert Only)
 public sealed class DatabaseService : IDisposable
 {
     private static DatabaseService _instance;
@@ -50,8 +49,8 @@ public sealed class DatabaseService : IDisposable
         conn.Open();
         using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = "PRAGMA foreign_keys=ON;"; cmd.ExecuteNonQuery();   // ★ NEW
-            cmd.CommandText = "PRAGMA busy_timeout=3000;"; cmd.ExecuteNonQuery(); // ★ NEW(권장)
+            cmd.CommandText = "PRAGMA foreign_keys=ON;"; cmd.ExecuteNonQuery();  
+            cmd.CommandText = "PRAGMA busy_timeout=3000;"; cmd.ExecuteNonQuery();
         }
         return conn;
     }
@@ -60,7 +59,6 @@ public sealed class DatabaseService : IDisposable
     {
         using (var c = conn.CreateCommand())
         {
-            // pragma는 파라미터 바인딩이 안 먹히는 경우가 많아 문자열 삽입(테이블/컬럼명은 하드코딩 값만 사용)
             c.CommandText = $"SELECT 1 FROM pragma_table_info('{table}') WHERE name='{column}' LIMIT 1;";
             return c.ExecuteScalar() != null;
         }
@@ -149,7 +147,7 @@ public sealed class DatabaseService : IDisposable
                 );
                 INSERT INTO stage_rewards_new (StageID, RewardMoney, RewardTicket)
                 SELECT StageID,
-                COALESCE(RewardMoney, Amount, 0),
+                COALESCE(RewardMoney, 0),
                 COALESCE(RewardTicket, 0)
                 FROM stage_rewards;
                 DROP TABLE stage_rewards;

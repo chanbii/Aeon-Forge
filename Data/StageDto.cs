@@ -3,12 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public enum DangerLevel
 {
-    Low,
-    Medium,
-    High
+    Low = 0,
+    Medium = 1,
+    High = 2
 }
 
 [System.Serializable]
@@ -20,5 +20,7 @@ public class StageDto
     public int StageNum;
     public DangerLevel Danger;
     public int Level;
+    public StageCostDto Cost = new StageCostDto();
+    public StageRewardDto Reward = new StageRewardDto();
 }
 

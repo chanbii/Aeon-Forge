@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5feb9973db0f861419d796a5481cf851
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - stagesCsv: {fileID: 11500000, guid: 00cbae18a5bd0c94592eceb6723ec120, type: 3}
+  - stageCostsCsv: {instanceID: 0}
+  - stageRewardsCsv: {instanceID: 0}
+  executionOrder: -1100
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

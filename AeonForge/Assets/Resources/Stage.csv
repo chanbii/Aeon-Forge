@@ -1,0 +1,21 @@
+StageID,StageName,Area,StageNum,Danger,Level
+STG001,근육 빵빵 육체 의뢰서,황무지,1,Low,1
+STG002,젊은 몸을 되찾고 싶어요,황무지,2,Low,1
+STG003,술과 독에 강한 육체,황무지,3,Low,1
+STG004,문어 머리를 한 몸이 가지고 싶어요,황무지,4,Low,1
+STG005,-,황무지,5,Medium,1
+STG006,-,황무지,6,Medium,1
+STG007,-,황무지,7,Medium,1
+STG008,-,황무지,8,Medium,1
+STG009,-,황무지,9,High,1
+STG010,-,황무지,10,High,1
+STG011,-,지하수도,1,Low,1
+STG012,-,지하수도,2,Low,1
+STG013,-,지하수도,3,Low,1
+STG014,-,지하수도,4,Low,1
+STG015,-,지하수도,5,Medium,1
+STG016,-,지하수도,6,Medium,1
+STG017,-,지하수도,7,Medium,1
+STG018,-,지하수도,8,Medium,1
+STG019,-,지하수도,9,High,1
+STG020,-,지하수도,10,High,1

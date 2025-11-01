@@ -1330,6 +1330,11 @@ MonoBehaviour:
   StageCsv: {fileID: 4900000, guid: b4295e8719d773445a44c9456ab1aefd, type: 3}
   StageRewardCsv: {fileID: 4900000, guid: 8ee53358de335064eb186c11fb6c7b0d, type: 3}
   StageCostCsv: {fileID: 4900000, guid: b9df4d626df60194f835803209a43359, type: 3}
+  EventCsv: {fileID: 4900000, guid: b2de57bae848d9e4ab535dac11ea750e, type: 3}
+  PenaltyCsv: {fileID: 4900000, guid: 8ad2f99f6678efc4eb1c9d939663a60d, type: 3}
+  AttackCharacterCsv: {fileID: 4900000, guid: 094ead2211b93b540913b012059d7c8f, type: 3}
+  SupportCharacterCsv: {fileID: 4900000, guid: 31c4d8e37f163bd47983f31495c0743b, type: 3}
+  TechCharacterCsv: {fileID: 4900000, guid: 46147d1f1c3a73a4db161e1e43e4ce84, type: 3}
   Stages: []
   StageRewards: []
   StageCosts: []
@@ -1795,6 +1800,8 @@ MonoBehaviour:
   stagesCsv: {fileID: 4900000, guid: b4295e8719d773445a44c9456ab1aefd, type: 3}
   stageCostsCsv: {fileID: 4900000, guid: b9df4d626df60194f835803209a43359, type: 3}
   stageRewardsCsv: {fileID: 4900000, guid: 8ee53358de335064eb186c11fb6c7b0d, type: 3}
+  eventCsv: {fileID: 4900000, guid: b2de57bae848d9e4ab535dac11ea750e, type: 3}
+  penaltyCsv: {fileID: 4900000, guid: 8ad2f99f6678efc4eb1c9d939663a60d, type: 3}
 --- !u!4 &2031316520
 Transform:
   m_ObjectHideFlags: 0

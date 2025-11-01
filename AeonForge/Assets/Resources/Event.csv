@@ -1,0 +1,22 @@
+EventID,Area,Danger,TurnType,EventType,EventRV,EventHP,PenaltyID,Explain,Probability
+WL_01,황무지,Low,Explore,Zone,10,0,pen001,가시덤불에 걸렸다.,4
+WL_02,황무지,Low,Explore,Zone,10,0,pen001,햇빛이 갑자기 강해져서 화상을 입었다.,4
+WL_03,황무지,Low,Explore,Zone,10,0,pen003,모래바람폭풍이 불어온다.,4
+WL_04,황무지,Low,Explore,Zone,10,,,,
+WL_05,황무지,Low,Explore,Zone,10,,,,
+WL_06,황무지,Low,Explore,Zone,10,,,,
+WL_07,황무지,Low,Explore,Zone,,,,,
+WL_08,황무지,Low,Explore,Zone,,,,,
+WL_09,황무지,Low,Explore,Monster,,10,pen001,약탈자 무리가 나타났다.,4
+WL_10,황무지,Low,Explore,Monster,,20,pen004,방사능 피폭 늑대가 나타났다.,4
+WL_11,황무지,Low,Explore,Monster,,20,pen002,독사다!,4
+WL_12,황무지,Low,Explore,Monster,,10,pen001,약탈자 무리가 나타났다.,4
+WL_13,황무지,Low,Explore,Monster,,,,,
+WL_14,황무지,Low,Explore,Monster,,,,,
+WL_15,황무지,Low,Aeon,Monster,,,,,
+WL_16,황무지,Low,Aeon,Monster,,,,,
+WL_17,황무지,Low,Aeon,Monster,,,,,
+WL_18,황무지,Low,Aeon,Monster,,,,,
+WL_19,황무지,Low,Aeon,Monster,,,,,
+WL_20,황무지,Low,Aeon,Monster,,,,,
+BS_01,지하수도,,,,,,,,

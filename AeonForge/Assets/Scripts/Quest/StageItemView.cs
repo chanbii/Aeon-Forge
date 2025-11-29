@@ -71,7 +71,6 @@ public class StageItemView : RecyclableScrollSlot<StageDto>, IPointerClickHandle
             moneyText.SetText("0");
             ticketText.SetText("0");
         }
-
         switch (data.Danger)
         {
             case DangerLevel.Low: dangerText.SetText("주의"); break;
@@ -79,7 +78,9 @@ public class StageItemView : RecyclableScrollSlot<StageDto>, IPointerClickHandle
             case DangerLevel.High: dangerText.SetText("심각"); break;
         }
 
+
         Debug.Log($"Stage {data.StageID}: {data.StageName}, Cost={data.Cost?.CostValue}, Reward={data.Reward?.RewardMoney}");
+
     }
 
     public void Bind(int index, bool expanded, System.Action<int, StageItemView> onRequestExpand)

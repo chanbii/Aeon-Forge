@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+<<<<<<< HEAD
 using System.Linq;
+=======
+>>>>>>> origin/develop
 using System.Reflection;
 using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
@@ -92,7 +95,7 @@ public class StageListController : MonoBehaviour
 
         ShowArea(list);
     }
-
+  
     private StageItemView FindViewForIndex(int idx)
     {
         foreach (var it in slotList)
@@ -121,15 +124,18 @@ public class StageListController : MonoBehaviour
                 btn.onClick.AddListener(() =>
                 {
                     var list = Tables.Instance.GetStagesByArea(areaCopy);
+
                     ShowArea(list);
                 });
 
                 btn.gameObject.SetActive(true);
             }
+
             else
             {
                 areaButtons[i].gameObject.SetActive(false);
             }
+ 
         }
     }
 
@@ -298,6 +304,7 @@ public class StageListController : MonoBehaviour
     {
         int old = expandedIndex;
         StageItemView oldView = (old >= 0) ? FindViewForIndex(old) : null;
+
 
         if (old == newIndex)
         {

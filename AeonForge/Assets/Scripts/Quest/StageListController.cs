@@ -1,6 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+<<<<<<< HEAD
+using System.Linq;
+=======
+>>>>>>> origin/develop
 using System.Reflection;
 using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
@@ -50,21 +54,48 @@ public class StageListController : MonoBehaviour
 
     [SerializeField] float collapsedRowHeight = 150f;
 
+    // DB에서 area 를 가져와 버튼 초기화
     void Start()
     {
-        if (bootstrap == null) bootstrap = FindObjectOfType<GameBootstrap>();
+        if (bootstrap == null) bootstrap = FindFirstObjectByType<GameBootstrap>();
         var repo = bootstrap?.StageRepo;
-        if (repo == null) { Init(new List<StageDto>()); return; }
 
-        var areas = repo.GetAreasInTableOrder();
+        if (repo == null)
+        {
+            Debug.LogError("[StageListController] StageRepo를 찾을 수 없음", this);
+            Init(new List<StageDto>());
+            return;
+        }
+
+        var areas = Tables.Instance.Areas; 
         SetupAreaButtons(areas);
 
-        repo.EnsureInitialUnlocks();       
-        progressMap = repo.GetProgressMap(); 
+        repo.EnsureInitialUnlocks(); 
+        progressMap = repo.GetProgressMap();
 
-        var initial = repo.GetAllStages();  
+        var initial = Tables.Instance.Stages; 
+
+        Debug.Log($"[StageListController] 로드된 초기 스테이지 수: {initial?.Count ?? 0}");
         Init(initial);
+        ShowFirstArea(areas);
     }
+
+    private void ShowFirstArea(List<string> areas)
+    {
+        if (areas == null || areas.Count == 0)
+        {
+            Debug.LogWarning("[StageListController] 로드된 Area 없음");
+            Init(new List<StageDto>());
+            return;
+        }
+
+        var firstAreaName = areas[0];
+
+        var list = Tables.Instance.GetStagesByArea(firstAreaName);
+
+        ShowArea(list);
+    }
+  
     private StageItemView FindViewForIndex(int idx)
     {
         foreach (var it in slotList)
@@ -88,15 +119,23 @@ public class StageListController : MonoBehaviour
                 if (tmp) tmp.SetText(area);
 
                 btn.onClick.RemoveAllListeners();
+
+                var areaCopy = area; 
                 btn.onClick.AddListener(() =>
                 {
-                    var list = bootstrap.StageRepo.GetStagesByArea(area);
+                    var list = Tables.Instance.GetStagesByArea(areaCopy);
+
                     ShowArea(list);
                 });
 
                 btn.gameObject.SetActive(true);
             }
-            else areaButtons[i].gameObject.SetActive(false);
+
+            else
+            {
+                areaButtons[i].gameObject.SetActive(false);
+            }
+ 
         }
     }
 
@@ -266,7 +305,26 @@ public class StageListController : MonoBehaviour
         int old = expandedIndex;
         StageItemView oldView = (old >= 0) ? FindViewForIndex(old) : null;
 
-        if (old >= 0 && old != newIndex)
+
+        if (old == newIndex)
+        {
+            StageItemView currentView = FindViewForIndex(newIndex);
+            if (currentView == null) { expandedIndex = -1; yield break; }
+
+            float from = heights[newIndex];
+            float to = collapsedHeight;
+
+            currentView.EnsureDetailsVisibleForAnim();
+            yield return StartCoroutine(AnimateHeight(currentView, newIndex, from, to, expanding: false));
+            currentView.HideDetailsAfterAnim();
+
+            heights[newIndex] = collapsedHeight; 
+            expandedIndex = -1; 
+
+            yield break; 
+        }
+
+        if (old >= 0)
         {
             float from = heights[old];
             float to = collapsedHeight;

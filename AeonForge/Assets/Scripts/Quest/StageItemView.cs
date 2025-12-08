@@ -49,17 +49,38 @@ public class StageItemView : RecyclableScrollSlot<StageDto>, IPointerClickHandle
     {
         var name = string.IsNullOrWhiteSpace(data.StageName) ? "(이름없음)" : data.StageName;
         stageName.SetText(name);
-        costTypeText.SetText(data.Cost.CostType);
-        costValueText.SetText(data.Cost.CostValue.ToString());
-        moneyText.SetText(data.Reward.RewardMoney.ToString());
-        ticketText.SetText(data.Reward.RewardTicket.ToString());
+        if (data.Cost != null)
+        {
+            costTypeText.SetText(data.Cost.CostType);
+            costValueText.SetText(data.Cost.CostValue.ToString());
+        }
+        else
+        {
+            costTypeText.SetText("-");
+            costValueText.SetText("0");
+        }
 
+        // Reward가 null이면 기본값 사용
+        if (data.Reward != null)
+        {
+            moneyText.SetText(data.Reward.RewardMoney.ToString());
+            ticketText.SetText(data.Reward.RewardTicket.ToString());
+        }
+        else
+        {
+            moneyText.SetText("0");
+            ticketText.SetText("0");
+        }
         switch (data.Danger)
         {
             case DangerLevel.Low: dangerText.SetText("주의"); break;
             case DangerLevel.Medium: dangerText.SetText("경계"); break;
             case DangerLevel.High: dangerText.SetText("심각"); break;
         }
+
+
+        Debug.Log($"Stage {data.StageID}: {data.StageName}, Cost={data.Cost?.CostValue}, Reward={data.Reward?.RewardMoney}");
+
     }
 
     public void Bind(int index, bool expanded, System.Action<int, StageItemView> onRequestExpand)

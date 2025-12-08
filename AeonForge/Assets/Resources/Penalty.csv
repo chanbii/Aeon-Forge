@@ -1,0 +1,8 @@
+PenaltyID,PenaltyType,EffectType,Value,Target,Explain
+pen001,Normal,HP,10,Single,HP 즉시 피해
+pen002,Normal,HP,20,Single,HP 즉시 피해
+pen003,Normal,SP,10,AoE,SP 즉시 추가
+pen004,Normal,SP,10,AoE,SP 즉시 추가
+pen005,Special,Poison,3,AoE,2턴간 HP 감소
+pen006,Special,Stun,0,Single,캐릭터 한 턴 행동 불가
+pen007,Normal,HP,10,Aeonforge,HP 즉시 피해
